@@ -21,7 +21,7 @@ main =
                 |> Str.toU32
                 |> unwrap
             End ->
-                0
+                crash "bad input: \(Inspect.toStr in)"
     _ <- insertErase size |> Task.await
     Stdout.line "done"
 
