@@ -101,32 +101,33 @@ randomFindInternalHelper = \d0, baseS0, unrelatedS0, findS0, findInitState, inse
 
     i1 =  i0 + (Num.toU32 (List.len insertRandom))
     
-    # the actual benchmark code which sohould be as fast as possible
-    helper = \findS1, j, findCount1, numFound1 ->
-        if j < findsPerIter then
-            findCount2 = findCount1 + 1
-            (findCount3, findS2) =
-                if findCount2 > i1 then
-                    (0, findInitState)
-                else
-                    (findCount2, findS1)
-            fullRange = Random.u32 0 Num.maxU32
-            {state: findS3, value} = fullRange findS2
-            shifted = applyBitShift value bitLoc
-            numFound2 =
-                when Dict.get d2 shifted is
-                    Ok v -> numFound1 + v
-                    Err _ -> numFound1
-            helper findS3 (j + 1) findCount3 numFound2
-        else
-            (findS1, findCount1, numFound1)
-
-    (findS4, findCount4, numFound3) = helper findS0 0 findCount0 numFound0
+    (findS1, findCount1, numFound1) = findHelper d2 findS0 0 findCount0 numFound0 bitLoc i1 findsPerIter findInitState
             
     if i1 < inserts then
-        randomFindInternalHelper d2 baseS4 unrelatedS3 findS4 findInitState insertRandom bitLoc i1 findCount4 numFound3 inserts findsPerIter
+        randomFindInternalHelper d2 baseS4 unrelatedS3 findS1 findInitState insertRandom bitLoc i1 findCount1 numFound1 inserts findsPerIter
     else
-        numFound3
+        numFound1
+
+
+# the actual benchmark code which sohould be as fast as possible
+findHelper = \dict, findS0, j, findCount0, numFound0, bitLoc, i, findsPerIter, findInitState ->
+    if j < findsPerIter then
+        findCount1 = findCount0 + 1
+        (findCount2, findS1) =
+            if findCount1 > i then
+                (0, findInitState)
+            else
+                (findCount1, findS0)
+        fullRange = Random.u32 0 Num.maxU32
+        {state: findS2, value} = fullRange findS1
+        shifted = applyBitShift value bitLoc
+        numFound1 =
+            when Dict.get dict shifted is
+                Ok v -> numFound0 + v
+                Err _ -> numFound0
+        findHelper dict findS2 (j + 1) findCount2 numFound1 bitLoc i findsPerIter findInitState
+    else
+        (findS0, findCount0, numFound0)
 
 
 applyBitShift = \val, bitLoc ->
