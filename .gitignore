@@ -1,4 +1,9 @@
+.DS_Store
+*.svg
 *.ll
+
+perf.data
+perf.data.old
 
 map_benchmark
 
