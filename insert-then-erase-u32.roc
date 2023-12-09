@@ -7,7 +7,7 @@ app "insert-erase-u32"
         cli.Stdin,
         cli.Stdout,
         cli.Task,
-        Random,
+        Sfc64,
     ]
     provides [main] to cli
 
@@ -26,7 +26,7 @@ main =
     Stdout.line "done"
 
 insertErase = \size ->
-    s0 = Random.seed32 213
+    s0 = Sfc64.new 213
    
     {dict: d0, rand: s1} = insertRandomElems (Dict.empty {}) size s0
     _ <- Dict.len d0 |> Num.toStr |> Stdout.line |> Task.await
@@ -42,10 +42,9 @@ insertErase = \size ->
 
 insertRandomElems = \dict, size, rand ->
     if size > 0 then
-        fullRange = Random.u32 0 Num.maxU32
-        {state: next, value} = fullRange rand
+        (next, value) = Sfc64.gen rand
         insertRandomElems
-            (Dict.insert dict value 0u32)
+            (Dict.insert dict (value |> Num.toU32) 0u32)
             (size - 1)
             next
     else
@@ -53,10 +52,9 @@ insertRandomElems = \dict, size, rand ->
     
 removeRandomElems = \dict, size, rand ->
     if size > 0 then
-        fullRange = Random.u32 0 Num.maxU32
-        {state: next, value} = fullRange rand
+        (next, value) = Sfc64.gen rand
         removeRandomElems
-            (Dict.remove dict value)
+            (Dict.remove dict (value |> Num.toU32))
             (size - 1)
             next
     else
