@@ -1,7 +1,8 @@
 # Ported from https://github.com/martinus/map_benchmark/blob/master/src/benchmarks/RandomFind.cpp
 app "random-find-u64"
     packages {
-        cli: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br",
+        # cli: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br",
+        cli: "../roc-basic-cli/src/main.roc"
     }
     imports [
         cli.Arg,
