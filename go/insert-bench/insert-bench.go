@@ -2,13 +2,17 @@ package main
 
 import (
     "fmt"
+    "strconv"
+    "os"
 
     "sfc64"
 )
 
 func main() {
-    var size int
-    fmt.Scanf("%d", &size)
+    size, err := strconv.Atoi(os.Args[1])
+    if err != nil {
+        panic(err)
+    }
     m := map[int32]int32{}
     rng := sfc64.New(213)
     for i:=0; i<size; i++ {

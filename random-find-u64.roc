@@ -4,7 +4,7 @@ app "random-find-u64"
         cli: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br",
     }
     imports [
-        cli.Stdin,
+        cli.Arg,
         cli.Stdout,
         cli.Task,
         Sfc64,
@@ -12,27 +12,19 @@ app "random-find-u64"
     provides [main] to cli
 
 main =
-    in <- Stdin.line |> Task.await
-    (inserts, findsPerInsert) =
-        when in is
-            Input line ->
-                {before, after} =
-                    line
-                    |> Str.trim
-                    |> Str.splitFirst " "
-                    |> unwrap
-                (
-                    before
-                    |> Str.trim
-                    |> Str.toU32
-                    |> unwrap,
-                    after
-                    |> Str.trim
-                    |> Str.toU32
-                    |> unwrap,
-                )
-            End ->
-                crash "bad input: \(Inspect.toStr in)"
+    args <- Arg.list |> Task.await
+    inserts =
+        args
+        |> List.get 1
+        |> unwrap
+        |> Str.toU32
+        |> unwrap
+    findsPerInsert =
+        args
+        |> List.get 2
+        |> unwrap
+        |> Str.toU32
+        |> unwrap
     _ <- randomFind inserts findsPerInsert |> Task.await
     Stdout.line "done"
 

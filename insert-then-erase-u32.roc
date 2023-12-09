@@ -4,7 +4,7 @@ app "insert-erase-u32"
         cli: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br",
     }
     imports [
-        cli.Stdin,
+        cli.Arg,
         cli.Stdout,
         cli.Task,
         Sfc64,
@@ -12,16 +12,13 @@ app "insert-erase-u32"
     provides [main] to cli
 
 main =
-    in <- Stdin.line |> Task.await
+    args <- Arg.list |> Task.await
     size =
-        when in is
-            Input line ->
-                line
-                |> Str.trim
-                |> Str.toU32
-                |> unwrap
-            End ->
-                crash "bad input: \(Inspect.toStr in)"
+        args
+        |> List.get 1
+        |> unwrap
+        |> Str.toU32
+        |> unwrap
     _ <- insertErase size |> Task.await
     Stdout.line "done"
 
