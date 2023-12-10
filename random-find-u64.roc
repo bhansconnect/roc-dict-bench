@@ -79,48 +79,48 @@ randomFindInternal = \numRandom, bitMask, inserts, findsPerInsert ->
     _ <- Stdout.line "\(numFound |> Num.toStr) found" |> Task.await
     Task.ok {}
 
-randomFindInternalHelper = \d0, baseS0, unrelatedS0, findS0, findInitState, insertRandom, bitMask, i0, findCount0, numFound0, inserts, findsPerIter ->
+randomFindInternalHelper = \dict, baseRng, unrelatedRng, findRng, findInitState, insertRandom, bitMask, i, findCount, numFound, inserts, findsPerIter ->
     # insert NumTotal entries: some random, some sequential
-    (baseS1, list) = Sfc64.slightlyBiasedShuffle insertRandom baseS0
-    (d2, baseS4, unrelatedS3) =
-        List.walk list (d0, baseS1, unrelatedS0) \(d1, baseS2, unrelatedS1), isRandomInsert ->
-            (unrelatedS2, unrelatedVal) = Sfc64.gen unrelatedS1
+    (baseRng, list) = Sfc64.slightlyBiasedShuffle insertRandom baseRng
+    (dict, baseRng, unrelatedRng) =
+        List.walk list (dict, baseRng, unrelatedRng) \(dict, baseRng, unrelatedRng), isRandomInsert ->
+            (unrelatedRng, unrelatedVal) = Sfc64.gen unrelatedRng
             if isRandomInsert then
-                (baseS3, value) = Sfc64.gen baseS2
+                (baseRng, value) = Sfc64.gen baseRng
                 masked = Num.bitwiseAnd value bitMask
-                (Dict.insert d1 masked 1u64, baseS3, unrelatedS2)
+                (Dict.insert dict masked 1u64, baseRng, unrelatedRng)
             else
                 masked = Num.bitwiseAnd unrelatedVal bitMask
-                (Dict.insert d1 masked 1u64, baseS2, unrelatedS2)
+                (Dict.insert dict masked 1u64, baseRng, unrelatedRng)
 
-    i1 =  i0 + (Num.toU32 (List.len insertRandom))
+    i =  i + (Num.toU32 (List.len insertRandom))
     
-    (findS1, findCount1, numFound1) = findHelper d2 findS0 0 findCount0 numFound0 bitMask i1 findsPerIter findInitState
+    (findRng, findCount, numFound) = findHelper dict findRng 0 findCount numFound bitMask i findsPerIter findInitState
             
-    if i1 < inserts then
-        randomFindInternalHelper d2 baseS4 unrelatedS3 findS1 findInitState insertRandom bitMask i1 findCount1 numFound1 inserts findsPerIter
+    if i < inserts then
+        randomFindInternalHelper dict baseRng unrelatedRng findRng findInitState insertRandom bitMask i findCount numFound inserts findsPerIter
     else
-        numFound1
+        numFound
 
 
 # the actual benchmark code which sohould be as fast as possible
-findHelper = \dict, findS0, j, findCount0, numFound0, bitMask, i, findsPerIter, findInitState ->
+findHelper = \dict, findRng, j, findCount, numFound, bitMask, i, findsPerIter, findInitState ->
     if j < findsPerIter then
-        findCount1 = findCount0 + 1
-        (findCount2, findS1) =
-            if findCount1 > i then
+        findCount = findCount + 1
+        (findCount, findRng) =
+            if findCount > i then
                 (0, findInitState)
             else
-                (findCount1, findS0)
-        (findS2, value) = Sfc64.gen findS1
+                (findCount, findRng)
+        (findRng, value) = Sfc64.gen findRng
         masked = Num.bitwiseAnd value bitMask
-        numFound1 =
+        numFound =
             when Dict.get dict masked is
-                Ok v -> numFound0 + v
-                Err _ -> numFound0
-        findHelper dict findS2 (j + 1) findCount2 numFound1 bitMask i findsPerIter findInitState
+                Ok v -> numFound + v
+                Err _ -> numFound
+        findHelper dict findRng (j + 1) findCount numFound bitMask i findsPerIter findInitState
     else
-        (findS0, findCount0, numFound0)
+        (findRng, findCount, numFound)
 
 unwrap = \res ->
     when res is
